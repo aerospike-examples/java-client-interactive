@@ -1,0 +1,41 @@
+<div (wheel)="onMouseWheel($event)">
+        
+    <div class="mt-2">
+        <p-panel header="Network Diagram and Aggregate Statistics" [toggleable]="true" [collapsed]="false">
+            <ng-template pTemplate="icons">
+                <button pButton class="p-panel-header-icon p-link" (click)="networkConfigMenu.toggle($event)">
+                    <span class="pi pi-cog"></span>
+                </button>
+                <p-menu #networkConfigMenu id="network_config_menu" [model]="networkConfigItems" [popup]="true"></p-menu>
+            </ng-template>
+            <div class="grid">
+                <div class="col-6" style="height: 600px;">
+                    <div style = "width: 100%; height: 100%; background-color: black;">
+                        <app-network-diagram [graphRefreshMs]="systemPreferences.graphRefreshMs" [yugabyteOffering]="ybOption"></app-network-diagram>
+                    </div>
+                </div>
+                <div class="col-6" style="height: 600px;">
+                    <div style = "width: 100%; height: 100%; background-color: black;">
+                        <div style="width: 100%; height: 50%">
+                            <app-statistics-graph style="width: 100%" [idName]="'aggregateLatency'" [timingData]="currentData[AGGREGATION_WORKLOAD].results" [duration]="duration" [timingType]="'LATENCY'" [timingMetric]="'Aggregation Counter'" [timingMetricName]="'Aggregate'"></app-statistics-graph> 
+                        </div>
+                        <div style="width: 100%; height: 50%">
+                            <app-statistics-graph [idName]="'aggregateThroughput'" [timingData]="currentData[AGGREGATION_WORKLOAD].results" [duration]="duration" [timingType]="'THROUGHPUT'" [timingMetric]="'Aggregation Counter'" [timingMetricName]="'Aggregate'"></app-statistics-graph> 
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </p-panel>
+    </div>
+</div>
+<div style="position: absolute; top: 25px; left: 10px; width: 20px; height: 20px; cursor: pointer;" (click)="displayDialog()">
+    <span class="fa-solid fa-bars"></span>
+</div>
+    
+    
+<p-dialog [(visible)]="commsErrorDialog" header="Communications Error" [modal]="true" [closable]="false">
+    Communications with the server cannot be established. Please check network connectivity.
+</p-dialog>
+    
+
+

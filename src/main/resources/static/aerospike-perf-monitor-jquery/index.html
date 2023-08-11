@@ -1,0 +1,62 @@
+<html>
+    <head>
+        <link href="node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet"/>
+        <link href="assets/css/App.css" rel="stylesheet"/>
+    </head>
+    <body>
+    	<div class="container">
+			<div class="row">
+				<h1 class="text-bg-primary text-white text-center mv-2 w-100">Controls</h1>
+				<div class="form-check form-switch">
+					<input class="form-check-input" type="checkbox" value="" id="enabledControl" checked>
+					<label class="form-check-label" for="enabledControl">Monitoring System Enabled</label>
+				</div>
+			</div>
+    		<div class="row">
+    			<div class="col-6 p-2">
+					<h1 class="text-bg-primary text-white text-center m-2 w-100">Individual Call Monitor</h1>
+					<div class="form-switch">
+						<input class="form-check-input sub-control recording-type" type="checkbox" value="" id="individualCallsEnabled">
+						<label class="form-check-label" for="individualCallsEnabled">Enabled</label>
+					</div>
+					<div class="individualFormOptions" style="padding: 10px; border: 1px solid darkgray; border-radius: 10px; color:lightgray">
+						<div class="form-switch">
+							<input class="form-check-input sub-control individual-type" type="checkbox" value="" id="showSizesControl">
+							<label class="form-check-label" for="showSizesControl">Show Object Sizes</label>
+						</div>
+						<div class="form-switch">
+							<input class="form-check-input sub-control individual-type" type="checkbox" value="" id="showBatchDetails">
+							<label class="form-check-label" for="showBatchDetails">Show Batch Details</label>
+						</div>
+						<div class="form-switch">
+							<input class="form-check-input sub-control individual-type" type="checkbox" value="" id="showStackTrace">
+							<label class="form-check-label" for="showStackTrace">Show Stack Trace</label>
+						</div>
+					</div>
+    			</div>
+    			<div class="col-6 p-2">
+					<h1 class="text-bg-primary text-white text-center m-2 w-100">Aggregate Call Monitor</h1>
+					<div class="form-switch">
+						<input class="form-check-input sub-control recording-type" type="checkbox" value="" id="aggregateCallsEnabled">
+						<label class="form-check-label" for="aggregateCallsEnabled">Enabled</label>
+					</div>
+    			</div>
+    		</div>
+    	</div>
+        <div id="latencyGraph" class="statistics-graph"></div>
+        <div id="throughputGraph" class="statistics-graph"></div>
+        <!-- 
+        <div>
+        	<button type="button" class="btn btn-primary run-command" data-command="load-data">Load data (10M records)</button>
+        	<button type="button" class="btn btn-primary run-command" data-command="run-workload">Run read/write workload</button>
+        	<button type="button" class="btn btn-primary run-command" data-command="run-workload-lower">Run sustainable read/write workload</button>
+        </div>
+        -->
+        <script src="node_modules/jquery/dist/jquery.min.js"></script>
+        <script src="node_modules/d3/dist/d3.min.js"></script>
+        <script src="node_modules/@popperjs/core/dist/cjs/popper.js"></script>
+        <script src="node_modules/bootstrap-jquery/dist/js/bootstrap.js"></script>
+        <script src="assets/js/StatisticsGraph.js"></script>
+        <script src="assets/js/App.js"></script>
+    </body>
+</html>
