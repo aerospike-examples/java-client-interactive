@@ -12,11 +12,18 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.aerospike.client.AerospikeClient;
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Bin;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.Key;
 import com.aerospike.client.Log;
 import com.aerospike.client.Record;
+import com.aerospike.client.async.EventPolicy;
+import com.aerospike.client.async.Monitor;
+import com.aerospike.client.async.NioEventLoop;
+import com.aerospike.client.async.NioEventLoops;
+import com.aerospike.client.listener.RecordListener;
+import com.aerospike.client.listener.WriteListener;
 import com.aerospike.client.policy.ClientPolicy;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
@@ -28,7 +35,7 @@ import com.aerospike.timf.client.ui.CallbackNotifier;
 
 public class FirstSample implements CallbackNotifier {
 
-    private static final int NUM_INSERT_THREADS = 2;
+    private static final int NUM_INSERT_THREADS = 5;
     private static final int NUM_RW_THREADS = 10;
     private static final long NUM_RECORDS = 100;
     private static final String NAMESPACE = "test";
@@ -39,11 +46,17 @@ public class FirstSample implements CallbackNotifier {
     private final AtomicLong recordCount = new AtomicLong(0);
     private final IAerospikeClient client;
     private volatile boolean done = false;
+    private final NioEventLoops eventLoops;
 
     private final WritePolicy writePolicy;
     
-    public FirstSample(IAerospikeClient client) {
-        this.client = new MonitoringAerospikeClient(client, EnumSet.of(RecordingType.AGGREGATE), new UiOptions(8090, false, this), new Filter().minTimeInUs(0));
+    public FirstSample(IAerospikeClient client, NioEventLoops eventLoops) {
+        this.eventLoops = eventLoops;
+        UiOptions options = new UiOptions(8090, false, this);
+        options.getSingleCallRecorderOptions().setShowBatchDetails(true);
+        options.getSingleCallRecorderOptions().setShowObjectSize(true);
+        options.getSingleCallRecorderOptions().setShowStackTrace(true);
+        this.client = new MonitoringAerospikeClient(client, EnumSet.of(RecordingType.PER_CALL), options, new Filter().minTimeInUs(0));
 //        this.client = new MonitoringAerospikeClient(client, EnumSet.noneOf(RecordingType.class), new UiOptions(8090, false, this), new Filter().minTimeInUs(0));
         WritePolicy policy = new WritePolicy(client.getWritePolicyDefault());
         policy.recordExistsAction = RecordExistsAction.REPLACE;
@@ -114,6 +127,52 @@ public class FirstSample implements CallbackNotifier {
         }
     }
     
+    private void runAsyncSingle(final NioEventLoop loop, int i) {
+        Random random = ThreadLocalRandom.current();
+        client.put(loop, new WriteListener() {
+            
+            @Override
+            public void onSuccess(Key key) {
+                client.get(loop, new RecordListener() {
+                    
+                    @Override
+                    public void onSuccess(Key key, Record record) {
+                    }
+                    @Override
+                    public void onFailure(AerospikeException exception) {
+                        exception.printStackTrace();
+                    }
+                }, writePolicy, key);
+            }
+            
+            @Override
+            public void onFailure(AerospikeException exception) {
+                exception.printStackTrace();
+            }
+        }, null,
+        new Key(NAMESPACE, SET_NAME, NUM_RECORDS+i),
+        new Bin("amount", random.nextInt(2000)*5),
+        new Bin("date", new Date().getTime()),
+        new Bin("custId", "12345"),
+        new Bin("name", nameGenerator.getName()),
+        new Bin("termId", random.nextInt(100000000)),
+        new Bin("src", "INTERNET"),
+        new Bin("payload", bytes));
+    }
+    
+    private void runAsyncWorkload(int eventLoopSize) {
+        for (int i = 0; i < 80; i++) {
+            runAsyncSingle(eventLoops.next(), i);
+        }
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+        }
+        for (int i = 0; i < 20; i++) {
+            runAsyncSingle(eventLoops.next(), i);
+        }
+    }
+
     public void finish() {
         this.done = true;
     }
@@ -127,7 +186,7 @@ public class FirstSample implements CallbackNotifier {
         Record[] results = client.get(null, keys);
         System.out.println("application received: " + results);
         try {
-            Thread.sleep(5000);
+            Thread.sleep(50000);
         } catch (InterruptedException e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
@@ -210,14 +269,22 @@ public class FirstSample implements CallbackNotifier {
 	    }
 		Log.setCallbackStandard();
 		
+		int maxCommandsInProcess = 40;
+		int eventLoopSize = Runtime.getRuntime().availableProcessors();
+		int concurrentMax = eventLoopSize * maxCommandsInProcess;
+		EventPolicy eventPolicy = new EventPolicy();
+        eventPolicy.minTimeout = 5000;
+        NioEventLoops eventLoops = new NioEventLoops(eventPolicy, eventLoopSize);
+        
 		ClientPolicy cp = new ClientPolicy();
+		cp.eventLoops = eventLoops;
+		
 		IAerospikeClient client = new AerospikeClient(cp, "172.17.0.2"/*args[0]*/, 3000);
 
-		FirstSample sample = new FirstSample(client);
+		FirstSample sample = new FirstSample(client, eventLoops);
 		sample.loadData();
+		sample.runAsyncWorkload(eventLoopSize);
 		sample.runWorkload(10, 1000000);
 		sample.close();
 	}
-
-
 }

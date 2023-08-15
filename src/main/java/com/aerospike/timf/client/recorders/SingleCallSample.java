@@ -4,6 +4,7 @@ import java.util.Date;
 
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
+import com.aerospike.client.async.EventLoop;
 import com.aerospike.client.policy.Policy;
 import com.aerospike.timf.client.Parameter;
 import com.aerospike.timf.client.Utils;
@@ -19,8 +20,10 @@ public class SingleCallSample extends Sample {
 	private final String stackTrace;
 	private Key[] batchKeys = null;
 	private Record[] batchRecords = null;
+	private final long threadId;
+	private final long activeAsyncCount;
 	
-	public SingleCallSample(long timeUs, boolean showBatchDetails, String functionName, Parameter[] parameters, String exceptionMessage, Object result, long resultSize, String stackTrace) {
+	public SingleCallSample(long timeUs, boolean showBatchDetails, String functionName, Parameter[] parameters, String exceptionMessage, Object result, long resultSize, String stackTrace, long threadId, long activeAsyncCount) {
 		super(new Date().getTime());
 		this.executionTimeUs = timeUs;
 		this.functionName = functionName;
@@ -30,6 +33,8 @@ public class SingleCallSample extends Sample {
 		this.resultSize = resultSize;
 		this.showBatchDetails = showBatchDetails;
 		this.stackTrace = stackTrace;
+		this.threadId = threadId;
+		this.activeAsyncCount = activeAsyncCount;
 	}
 
 	public String getFunctionName() {
@@ -44,6 +49,7 @@ public class SingleCallSample extends Sample {
         StringBuffer sb = new StringBuffer().append('(');
         if (parameters != null && parameters.length > 0) {
             for (int i= 0; i < parameters.length; i++) {
+                boolean skipSize = false;
                 Parameter thisParam = parameters[i];
                 sb.append(thisParam.getName()).append(':');
                 if (thisParam.getValue() == null) {
@@ -51,6 +57,15 @@ public class SingleCallSample extends Sample {
                 }
                 else if (thisParam.getValue() instanceof Policy) {
                     sb.append(Utils.toString((Policy)thisParam.getValue()));
+                }
+                else if (EventLoop.class.isAssignableFrom(thisParam.getValue().getClass())) {
+                    EventLoop loop = (EventLoop)thisParam.getValue();
+                    sb.append("{[").append(loop.getIndex()).append("],ps:").append(loop.getProcessSize()).append(",qs:").append(loop.getQueueSize()).append("}");
+                    skipSize = true;
+                }
+                else if ("listener".equals(thisParam.getName())) {
+                    sb.append("<function>");
+                    skipSize = true;
                 }
                 else if (thisParam.getValue().getClass().isArray()) {
                     Class<?> elementType = thisParam.getValue().getClass().getComponentType();
@@ -63,7 +78,7 @@ public class SingleCallSample extends Sample {
                 else {
                     sb.append(thisParam.getValue());
                 }
-                if (thisParam.getSize() > 0) {
+                if (thisParam.getSize() > 0 && !skipSize) {
                     sb.append('|').append(Utils.humanReadableByteCountBinary(thisParam.getSize())).append('|');
                 }
                 sb.append(", ");
@@ -164,7 +179,7 @@ public class SingleCallSample extends Sample {
 	    long startTime = startDate.getTime() + startTimeInUs/1000;
 	    String date = sdf.format(new Date(startTime));
 	    String stackTrace = this.stackTrace == null ? "" : "\n" + this.stackTrace;
-        return String.format("[%s]: %s%s = %s => %,dus%s%s", date, this.getFunctionName(),
+        return String.format("[%s]: {%d,%d} %s%s = %s => %,dus%s%s", date, this.threadId, this.activeAsyncCount, this.getFunctionName(),
                 this.getParametersAsString(), this.getResultAsString(), executionTimeUs, getBatchDetails(), stackTrace);
 //        return String.format("[%,10dus] - %s%s = %s => %,dus",
 //                startTimeInUs, 

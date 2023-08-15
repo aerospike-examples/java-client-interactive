@@ -7,6 +7,7 @@ import com.aerospike.timf.client.IRecorder;
 import com.aerospike.timf.client.MonitoringAerospikeClient;
 import com.aerospike.timf.client.Parameter;
 import com.aerospike.timf.client.Utils;
+import com.aerospike.timf.client.listeners.AsyncMonitor;
 
 public class SingleCallRecorder extends Recorder implements IRecorder {
     private final SingleCallRecorderOptions options;
@@ -83,7 +84,8 @@ public class SingleCallRecorder extends Recorder implements IRecorder {
 	        if (filter == null || filter.apply(timeUs)) {
                 long size = (this.options.isShowObjectSize()) ? Utils.estimateSize(result) : 0;
         		SingleCallSample sample = new SingleCallSample(timeUs, this.options.isShowBatchDetails(), getFunctionName(description), 
-        		        getParameters(description, args), exception == null ? null : exception.getMessage(), result, size, getStackTrace());
+        		        getParameters(description, args), exception == null ? null : exception.getMessage(), result, size, getStackTrace(),
+        		        Thread.currentThread().getId(), AsyncMonitor.getInstance().getActiveCount());
         		samples.add(sample);
         		if (samples.size() > DEFAULT_SAMPLE_COUNT) {
         			samples.remove(0);
@@ -110,6 +112,7 @@ public class SingleCallRecorder extends Recorder implements IRecorder {
     @Override
     public void enable(boolean isEnabled) {
         this.enabled = isEnabled;
+        AsyncMonitor.getInstance().setEnabled(isEnabled);
     }
     
     public boolean isEnabled() {
