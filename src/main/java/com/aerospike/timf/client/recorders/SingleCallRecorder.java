@@ -15,7 +15,7 @@ public class SingleCallRecorder extends Recorder implements IRecorder {
     private Filter filter;
     // Specify this as a reference to the class so if the name ever changes we get a compile error
     private static final String FILE_NAME = MonitoringAerospikeClient.class.getSimpleName() + ".java";
-    private static final int STACK_TRACE_ELEMENTS_TO_PRINT = 4;
+    private static final int STACK_TRACE_ELEMENTS_TO_PRINT = 7;
     
     public SingleCallRecorder(SingleCallRecorderOptions options) {
         this.options = options;
