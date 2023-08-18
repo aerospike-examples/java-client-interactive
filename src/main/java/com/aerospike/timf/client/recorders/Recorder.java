@@ -10,7 +10,7 @@ import com.aerospike.timf.client.SampleNotifier;
 public class Recorder {
 	protected static final int DEFAULT_SAMPLE_COUNT = 300;
 	private List<SampleNotifier> sampleHanlders = new ArrayList<>();
-	private ArrayBlockingQueue<Sample> processQueue = new ArrayBlockingQueue<>(1000);
+	private ArrayBlockingQueue<Sample> processQueue = new ArrayBlockingQueue<>(5000);
 
 	private long startTimeNs = System.nanoTime();
 	protected List<Sample> samples = new ArrayList<Sample>(DEFAULT_SAMPLE_COUNT);
@@ -85,6 +85,9 @@ public class Recorder {
 	}
 	
 	protected void sampleAdded(Sample sample) {
-	    processQueue.add(sample);
+	    try {
+            processQueue.put(sample);
+        } catch (InterruptedException ignored) {
+        }
 	}
 }
