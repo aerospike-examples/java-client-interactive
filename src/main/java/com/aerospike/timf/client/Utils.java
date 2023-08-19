@@ -20,24 +20,24 @@ import com.aerospike.client.policy.WritePolicy;
 
 public class Utils {
     
-    private static long estimateSize(List<?> list, Set<Object> visitedObjects) {
+    private static long estimateSize(List<?> list, Set<Object> visitedObjects, int depth) {
         long size = 0;
         for (Object o : list) {
-            size += estimateSize(o, visitedObjects);
+            size += estimateSize(o, visitedObjects, depth);
         }
         return size;
     }
-    private static long estimateSize(Map<?,?> map, Set<Object> visitedObjects) {
+    private static long estimateSize(Map<?,?> map, Set<Object> visitedObjects, int depth) {
         long size = 0;
         for (Object o : map.keySet()) {
-            size += estimateSize(o, visitedObjects) + estimateSize(map.get(o), visitedObjects);
+            size += estimateSize(o, visitedObjects, depth) + estimateSize(map.get(o), visitedObjects, depth);
         }
         return size;
     }
-    private static long estimateSize(Object[] objs, Set<Object> visitedObjects) {
+    private static long estimateSize(Object[] objs, Set<Object> visitedObjects, int depth) {
         long size = 0;
         for (Object obj : objs) {
-            size += estimateSize(obj, visitedObjects);
+            size += estimateSize(obj, visitedObjects, depth);
         }
         return size;
     }
@@ -57,7 +57,21 @@ public class Utils {
         return -1;
     }
     
-    private static long reflectivelyEstimateSize(Object obj, Class<?> clazz, Set<Object> visitedObjects) {
+    private static final int RECURSION_LIMIT = 800;
+    private static boolean validateRecursionLimitExceeded(int depth, Object obj, Set<Object> visitedObjects) {
+        if (depth > RECURSION_LIMIT) {
+            System.err.printf("ERROR: Aborting size estimation due to recursion limit! obj=%s, class=%s, visitedObjects.size=%d\n",
+                    obj, obj == null ? "null" : obj.getClass().getName(), visitedObjects.size());
+            Thread.dumpStack();
+            return true;
+        }
+        return false;
+    }
+    
+    private static long reflectivelyEstimateSize(Object obj, Class<?> clazz, Set<Object> visitedObjects, int depth) {
+        if (validateRecursionLimitExceeded(++depth, obj, visitedObjects)) {
+            return 0;
+        }
         Field[] fields;
         try  {
             fields = clazz.getDeclaredFields();
@@ -78,22 +92,25 @@ public class Utils {
             try {
                 f.setAccessible(true);
                 Object child = f.get(obj);
-                size += estimateSize(child, visitedObjects);
+                size += estimateSize(child, visitedObjects, depth);
             }
             catch (Exception ignored) {
             }
         }
-        Class<?> superClass = clazz.getSuperclass();
-        if (!(superClass == null || Object.class.equals(superClass))) {
-            return reflectivelyEstimateSize(obj, superClass, visitedObjects);
+        Class<?> superClazz = clazz.getSuperclass();
+        if (!(superClazz == null || Object.class.equals(superClazz))) {
+            size = reflectivelyEstimateSize(obj, superClazz, visitedObjects, depth);
         }
         return size;
     }
     public static long estimateSize(Object obj) {
-        return estimateSize(obj, new HashSet<>(1000));
+        return estimateSize(obj, new HashSet<>(1000), 1);
     }
     
-    private static long estimateSize(Object obj, Set<Object> visitedObjects) {
+    private static long estimateSize(Object obj, Set<Object> visitedObjects, int depth) {
+        if (validateRecursionLimitExceeded(++depth, obj, visitedObjects)) {
+            return 0;
+        }
         if (obj == null || visitedObjects.contains(obj)) {
             return 0;
         }
@@ -104,11 +121,11 @@ public class Utils {
         }
         else if (obj instanceof List) {
             visitedObjects.add(obj);
-            return estimateSize((List<?>)obj, visitedObjects);
+            return estimateSize((List<?>)obj, visitedObjects, depth);
         }
         else if (obj instanceof Map) {
             visitedObjects.add(obj);
-            return estimateSize((Map<?,?>)obj, visitedObjects);
+            return estimateSize((Map<?,?>)obj, visitedObjects, depth);
         }
         else if (obj instanceof Byte || obj instanceof Character || obj instanceof Boolean) {
             return 1;
@@ -137,7 +154,9 @@ public class Utils {
         }
         else if (obj instanceof Record) {
             Record record = (Record)obj;
-            return estimateSize(record.bins) + estimateSize(record.expiration) + estimateSize(record.generation);
+            return estimateSize(record.bins, visitedObjects, depth) 
+                    + estimateSize(record.expiration, visitedObjects, depth)
+                    + estimateSize(record.generation, visitedObjects, depth);
         }
         else {
             Class<?> clazz = obj.getClass();
@@ -156,12 +175,12 @@ public class Utils {
                     if (instanceSize >= 0) {
                         return array.length * instanceSize;
                     }
-                    return estimateSize(array, visitedObjects);
+                    return estimateSize(array, visitedObjects, depth);
                 }
                 else {
                     long size = 0;
                     for (int i = 0; i < array.length; i++) {
-                        size += estimateSize(array[i], visitedObjects);
+                        size += estimateSize(array[i], visitedObjects, depth);
                     }
                     return size;
                 }
@@ -169,7 +188,7 @@ public class Utils {
             else {
                 // Have to use introspection on the object
                 visitedObjects.add(obj);
-                return reflectivelyEstimateSize(obj, clazz, visitedObjects);
+                return reflectivelyEstimateSize(obj, clazz, visitedObjects, depth);
             }
         }
     }
