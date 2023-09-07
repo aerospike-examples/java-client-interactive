@@ -91,18 +91,20 @@ public class SingleCallRecorder extends Recorder implements IRecorder {
         return stackTrace;
 	}
 
-	public synchronized void addSample(long timeUs, String description, RuntimeException exception, Object result, Object... args) {
+	public void addSample(long timeUs, String description, RuntimeException exception, Object result, Object... args) {
 	    if (enabled) {
 	        if (filter == null || filter.apply(timeUs)) {
                 long size = (this.options.isShowResultSize()) ? Utils.estimateSize(result) : 0;
         		SingleCallSample sample = new SingleCallSample(timeUs, this.options.isShowBatchDetails(), getFunctionName(description), 
         		        getParameters(description, args), exception == null ? null : exception.getMessage(), result, size, getStackTrace(),
         		        Thread.currentThread().getId(), AsyncMonitor.getInstance().getActiveCount());
-        		samples.add(sample);
-        		if (samples.size() > DEFAULT_SAMPLE_COUNT) {
-        			samples.remove(0);
+        		synchronized (this) {
+            		samples.add(sample);
+            		if (samples.size() > DEFAULT_SAMPLE_COUNT) {
+            			samples.remove(0);
+            		}
+                    this.sampleAdded(sample);
         		}
-                this.sampleAdded(sample);
 	        }
 	    }
 	}
