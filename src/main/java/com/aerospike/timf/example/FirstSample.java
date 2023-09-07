@@ -17,11 +17,17 @@ import com.aerospike.client.Bin;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.Key;
 import com.aerospike.client.Log;
+import com.aerospike.client.Operation;
 import com.aerospike.client.Record;
+import com.aerospike.client.Value;
 import com.aerospike.client.async.EventPolicy;
-import com.aerospike.client.async.Monitor;
 import com.aerospike.client.async.NioEventLoop;
 import com.aerospike.client.async.NioEventLoops;
+import com.aerospike.client.cdt.CTX;
+import com.aerospike.client.cdt.ListOperation;
+import com.aerospike.client.cdt.ListReturnType;
+import com.aerospike.client.cdt.MapOperation;
+import com.aerospike.client.cdt.MapPolicy;
 import com.aerospike.client.listener.RecordListener;
 import com.aerospike.client.listener.WriteListener;
 import com.aerospike.client.policy.ClientPolicy;
@@ -54,7 +60,7 @@ public class FirstSample implements CallbackNotifier {
         this.eventLoops = eventLoops;
         UiOptions options = new UiOptions(8090, false, this);
         options.getSingleCallRecorderOptions().setShowBatchDetails(true);
-        options.getSingleCallRecorderOptions().setShowObjectSize(true);
+        options.getSingleCallRecorderOptions().setShowResultSize(true);
         options.getSingleCallRecorderOptions().setShowStackTrace(true);
         this.client = new MonitoringAerospikeClient(client, EnumSet.of(RecordingType.PER_CALL), options, new Filter().minTimeInUs(0));
 //        this.client = new MonitoringAerospikeClient(client, EnumSet.noneOf(RecordingType.class), new UiOptions(8090, false, this), new Filter().minTimeInUs(0));
@@ -125,6 +131,14 @@ public class FirstSample implements CallbackNotifier {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        
+        client.operate(null, new Key(NAMESPACE, SET_NAME, 10), 
+                Operation.add(new Bin("date", 1)),
+                Operation.get("custId"),
+                MapOperation.put(MapPolicy.Default, "map", Value.get("bob"), Value.get("fred")),
+                ListOperation.getByIndexRange("data", 0, 1000, ListReturnType.VALUE, new CTX[0])
+//                Operation.put(new Bin("obj", done))
+            );
     }
     
     private void runAsyncSingle(final NioEventLoop loop, int i) {
@@ -186,7 +200,7 @@ public class FirstSample implements CallbackNotifier {
         Record[] results = client.get(null, keys);
         System.out.println("application received: " + results);
         try {
-            Thread.sleep(50000);
+            Thread.sleep(5000);
         } catch (InterruptedException e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();

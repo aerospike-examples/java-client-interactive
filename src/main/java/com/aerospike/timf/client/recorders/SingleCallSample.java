@@ -4,7 +4,6 @@ import java.util.Date;
 
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
-import com.aerospike.client.async.EventLoop;
 import com.aerospike.client.policy.Policy;
 import com.aerospike.timf.client.Parameter;
 import com.aerospike.timf.client.Utils;
@@ -58,15 +57,16 @@ public class SingleCallSample extends Sample {
                 else if (thisParam.getValue() instanceof Policy) {
                     sb.append(Utils.toString((Policy)thisParam.getValue()));
                 }
-                else if (EventLoop.class.isAssignableFrom(thisParam.getValue().getClass())) {
-                    EventLoop loop = (EventLoop)thisParam.getValue();
-                    sb.append("{[").append(loop.getIndex()).append("],ps:").append(loop.getProcessSize()).append(",qs:").append(loop.getQueueSize()).append("}");
-                    skipSize = true;
-                }
-                else if ("listener".equals(thisParam.getName())) {
-                    sb.append("<function>");
-                    skipSize = true;
-                }
+                // Moved this code to the single call recorder to prevent serializing / sizing listeners and event loops
+//                else if (EventLoop.class.isAssignableFrom(thisParam.getValue().getClass())) {
+//                    EventLoop loop = (EventLoop)thisParam.getValue();
+//                    sb.append("{[").append(loop.getIndex()).append("],ps:").append(loop.getProcessSize()).append(",qs:").append(loop.getQueueSize()).append("}");
+//                    skipSize = true;
+//                }
+//                else if ("listener".equals(thisParam.getName())) {
+//                    sb.append("<function>");
+//                    skipSize = true;
+//                }
                 else if (thisParam.getValue().getClass().isArray()) {
                     Class<?> elementType = thisParam.getValue().getClass().getComponentType();
                     Object[] array = (Object[])thisParam.getValue();

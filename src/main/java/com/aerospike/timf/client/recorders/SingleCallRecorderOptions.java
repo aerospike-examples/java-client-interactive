@@ -1,7 +1,8 @@
 package com.aerospike.timf.client.recorders;
 
 public class SingleCallRecorderOptions {
-    private volatile boolean showObjectSize = false;
+    private volatile boolean showResultSize = false;
+    private volatile boolean showParameterSizes = false;
     private volatile boolean showBatchDetails = false;
     private volatile boolean showStackTrace = false;
 
@@ -12,11 +13,12 @@ public class SingleCallRecorderOptions {
         this.showBatchDetails = showBatchDetails;
     }
     
-    public boolean isShowObjectSize() {
-        return showObjectSize;
+    public boolean isShowResultSize() {
+        return showResultSize;
     }
-    public void setShowObjectSize(boolean showObjectSize) {
-        this.showObjectSize = showObjectSize;
+    
+    public void setShowResultSize(boolean showResultSize) {
+        this.showResultSize = showResultSize;
     }
     
     public boolean isShowStackTrace() {
@@ -25,5 +27,13 @@ public class SingleCallRecorderOptions {
     
     public void setShowStackTrace(boolean showStackTrace) {
         this.showStackTrace = showStackTrace;
+    }
+    
+    public boolean isShowParameterSizes() {
+        return showParameterSizes;
+    }
+    
+    public void setShowParameterSizes(boolean showParameterSizes) {
+        this.showParameterSizes = showParameterSizes;
     }
 }

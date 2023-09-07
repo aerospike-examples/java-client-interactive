@@ -60,7 +60,7 @@ public class Utils {
     private static final int RECURSION_LIMIT = 800;
     private static boolean validateRecursionLimitExceeded(int depth, Object obj, Set<Object> visitedObjects) {
         if (depth > RECURSION_LIMIT) {
-            System.err.printf("ERROR: Aborting size estimation due to recursion limit! obj=%s, class=%s, visitedObjects.size=%d\n",
+            System.out.printf("ERROR: Aborting size estimation due to recursion limit! obj=%s, class=%s, visitedObjects.size=%d\n",
                     obj, obj == null ? "null" : obj.getClass().getName(), visitedObjects.size());
             Thread.dumpStack();
             return true;
