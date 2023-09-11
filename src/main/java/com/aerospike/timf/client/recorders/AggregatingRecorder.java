@@ -16,6 +16,7 @@ public class AggregatingRecorder extends Recorder implements IRecorder {
 	private int timeToKeepSamplesInSecs;
 	
 	public AggregatingRecorder(AggregatingRecorderOptions options) {
+	    super(false);
 	    this.options = options;
 	    this.timeToKeepSamplesInSecs = this.options.getTimeToKeepSamplesInSecs();
 		this.sizeData(0, this.options.getTimeToKeepSamplesInSecs());

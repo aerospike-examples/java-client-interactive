@@ -137,7 +137,10 @@ public class SingleCallSample extends Sample {
 	            sb.append("\n     [").append(i).append("]:").append(batchKeys[i]);
 	            if (exceptionMessage == null) {
 	                sb.append(": ");
-	                if (i < batchRecords.length) {
+	                if (batchRecords == null) {
+	                    sb.append("async call");
+	                }
+	                else if (i < batchRecords.length) {
 	                    Record thisRecord = batchRecords[i];
 	                    if (thisRecord == null) {
 	                        sb.append("not found");
@@ -179,8 +182,13 @@ public class SingleCallSample extends Sample {
 	    long startTime = startDate.getTime() + startTimeInUs/1000;
 	    String date = sdf.format(new Date(startTime));
 	    String stackTrace = this.stackTrace == null ? "" : "\n" + this.stackTrace;
+	    // These methods must be called in this order as the first 2 have side effects which affect the next calls. 
+	    // Whilst JLS 15.12.4.2 specifies argument order from left to right, it's better to call them explicitly in order.
+	    String parametersString = this.getParametersAsString();
+	    String resultsString = this.getResultAsString();
+	    String batchDetails = getBatchDetails();
         return String.format("[%s]: {%d,%d} %s%s = %s => %,dus%s%s", date, this.threadId, this.activeAsyncCount, this.getFunctionName(),
-                this.getParametersAsString(), this.getResultAsString(), executionTimeUs, getBatchDetails(), stackTrace);
+                parametersString, resultsString, executionTimeUs, batchDetails, stackTrace);
 //        return String.format("[%,10dus] - %s%s = %s => %,dus",
 //                startTimeInUs, 
 //                this.getFunctionName(), 

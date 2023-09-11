@@ -16,26 +16,39 @@ public class Recorder {
 	protected List<Sample> samples = new ArrayList<Sample>(DEFAULT_SAMPLE_COUNT);
 	private final Thread notifierThread;
 	private final Object sampleLock = new Object();
+	private final boolean processAsync;
 	
-	public Recorder() {
-	    this.notifierThread = new Thread(() -> {
-	        while (true) {
-	            Sample thisSample;
-                try {
-                    thisSample = processQueue.take();
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-	            synchronized (sampleLock) {
-    	            for (SampleNotifier handler : sampleHanlders) {
-    	                handler.sampleAdded(thisSample);
+	public Recorder(boolean processAsync) {
+	    this.processAsync = processAsync;
+	    if (processAsync) {
+    	    this.notifierThread = new Thread(() -> {
+    	        while (true) {
+    	            Sample thisSample;
+                    try {
+                        thisSample = processQueue.take();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+    	            synchronized (sampleLock) {
+        	            for (SampleNotifier handler : sampleHanlders) {
+        	                try {
+        	                    handler.sampleAdded(thisSample);
+        	                }
+        	                catch (Exception e) {
+        	                    System.out.printf("Exception caught from adding sample: %s (%s)\n", e.getMessage(), e.getCause());
+        	                    e.printStackTrace();
+        	                }
+        	            }
     	            }
-	            }
-	        }
-	    });
-	    this.notifierThread.setDaemon(true);
-	    this.notifierThread.setName("SampleNotifierThread");
-	    this.notifierThread.start();
+    	        }
+    	    });
+    	    this.notifierThread.setDaemon(true);
+    	    this.notifierThread.setName(this.getClass().getSimpleName()+"SampleNotifierThread");
+    	    this.notifierThread.start();
+	    }
+	    else {
+	        this.notifierThread = null;
+	    }
 	}
 
 	public long getTimeSinceStartedInUs() {
@@ -72,9 +85,9 @@ public class Recorder {
 	 * @return
 	 */
 	public Recorder addSampleNotifier(SampleNotifier notifier) {
-	    synchronized (sampleLock) {
-	        this.sampleHanlders.add(notifier);
-	        return this;
+        synchronized (sampleLock) {
+            this.sampleHanlders.add(notifier);
+            return this;
         }
 	}
 	public synchronized Recorder removeSampleNotifier(SampleNotifier notifier) {
@@ -85,9 +98,15 @@ public class Recorder {
 	}
 	
 	protected void sampleAdded(Sample sample) {
-	    try {
-            processQueue.put(sample);
-        } catch (InterruptedException ignored) {
+        if (processAsync) {
+    	    try {
+                processQueue.put(sample);
+            } catch (InterruptedException ignored) {}
+        }
+        else {
+            for (SampleNotifier handler : sampleHanlders) {
+                handler.sampleAdded(sample);
+            }
         }
 	}
 }

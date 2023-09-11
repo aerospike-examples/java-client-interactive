@@ -19,6 +19,7 @@ public class SingleCallRecorder extends Recorder implements IRecorder {
     private static final int STACK_TRACE_ELEMENTS_TO_PRINT = 7;
     
     public SingleCallRecorder(SingleCallRecorderOptions options) {
+        super(true);
         this.options = options;
     }
 	public String getFunctionName(String description) {

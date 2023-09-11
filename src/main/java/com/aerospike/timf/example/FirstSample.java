@@ -28,6 +28,7 @@ import com.aerospike.client.cdt.ListOperation;
 import com.aerospike.client.cdt.ListReturnType;
 import com.aerospike.client.cdt.MapOperation;
 import com.aerospike.client.cdt.MapPolicy;
+import com.aerospike.client.listener.RecordArrayListener;
 import com.aerospike.client.listener.RecordListener;
 import com.aerospike.client.listener.WriteListener;
 import com.aerospike.client.policy.ClientPolicy;
@@ -151,6 +152,20 @@ public class FirstSample implements CallbackNotifier {
                     
                     @Override
                     public void onSuccess(Key key, Record record) {
+                        client.get(loop, new RecordArrayListener() {
+                            
+                            @Override
+                            public void onSuccess(Key[] keys, Record[] records) {
+                                // TODO Auto-generated method stub
+                                
+                            }
+                            
+                            @Override
+                            public void onFailure(AerospikeException ae) {
+                                // TODO Auto-generated method stub
+                                
+                            }
+                        }, client.getBatchPolicyDefault(), new Key[] {key, key, key, key});
                     }
                     @Override
                     public void onFailure(AerospikeException exception) {

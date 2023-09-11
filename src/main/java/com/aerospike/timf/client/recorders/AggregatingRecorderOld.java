@@ -15,6 +15,7 @@ public class AggregatingRecorderOld extends Recorder implements IRecorder {
 	private final Thread timerThread;
 	
 	public AggregatingRecorderOld() {
+	    super(false);
 		this.sizeData(0, DEFAULT_SAMPLE_COUNT);
 		this.timerThread = new Thread(() -> {
 			while (true) {
