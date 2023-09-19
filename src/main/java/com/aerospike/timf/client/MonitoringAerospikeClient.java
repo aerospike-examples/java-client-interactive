@@ -8,7 +8,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.BatchRead;
@@ -79,7 +78,6 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
     private final PortListener listener;
     private final UiOptions uiOptions;
     private final FailureProfile failureProfile;
-    private final AtomicLong asyncOperationsInProgress = new AtomicLong();
 
     private static interface Invoker<T extends Policy> {
         Object invoke(T policy);
@@ -414,8 +412,8 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     "put(EventLoop eventLoop, WriteListener listener, WritePolicy policy, Key key, Bin... bins)",
                     eventLoop, listener, policy, key, bins);
             try {
-                delegate.put(eventLoop, AsyncMonitor.getInstance().wrap(listener), policy, key, bins);
-                utility.end();
+                delegate.put(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), policy, key, bins);
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }
@@ -445,8 +443,8 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     "append(EventLoop eventLoop, WriteListener listener, WritePolicy policy, Key key, Bin... bins)",
                     eventLoop, listener, policy, key, bins);
             try {
-                delegate.append(eventLoop, AsyncMonitor.getInstance().wrap(listener), policy, key, bins);
-                utility.end();
+                delegate.append(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), policy, key, bins);
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }
@@ -476,8 +474,8 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     "prepend(EventLoop eventLoop, WriteListener listener, WritePolicy policy, Key key, Bin... bins)",
                     eventLoop, listener, policy, key, bins);
             try {
-                delegate.prepend(eventLoop, AsyncMonitor.getInstance().wrap(listener), policy, key, bins);
-                utility.end();
+                delegate.prepend(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), policy, key, bins);
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }
@@ -516,8 +514,8 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     "add(EventLoop eventLoop, WriteListener listener, WritePolicy policy, Key key, Bin... bins)",
                     eventLoop, listener, policy, key, bins);
             try {
-                delegate.add(eventLoop, AsyncMonitor.getInstance().wrap(listener), policy, key, bins);
-                utility.end();
+                delegate.add(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), policy, key, bins);
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }
@@ -545,8 +543,8 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     .start("delete(EventLoop eventLoop, DeleteListener listener, WritePolicy policy, Key key)",
                             eventLoop, listener, policy, key);
             try {
-                delegate.delete(eventLoop, AsyncMonitor.getInstance().wrap(listener), policy, key);
-                utility.end();
+                delegate.delete(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), policy, key);
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }
@@ -577,8 +575,8 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     "delete(EventLoop eventLoop, BatchRecordArrayListener listener, BatchPolicy batchPolicy, BatchDeletePolicy deletePolicy, Key[] keys)",
                     eventLoop, listener, batchPolicy, deletePolicy, keys);
             try {
-                delegate.delete(eventLoop, AsyncMonitor.getInstance().wrap(listener), batchPolicy, deletePolicy, keys);
-                utility.end();
+                delegate.delete(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), batchPolicy, deletePolicy, keys);
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }
@@ -594,8 +592,8 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     "delete(EventLoop eventLoop, BatchRecordSequenceListener listener, BatchPolicy batchPolicy, BatchDeletePolicy deletePolicy, Key[] keys)",
                     eventLoop, listener, batchPolicy, deletePolicy, keys);
             try {
-                delegate.delete(eventLoop, AsyncMonitor.getInstance().wrap(listener), batchPolicy, deletePolicy, keys);
-                utility.end();
+                delegate.delete(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), batchPolicy, deletePolicy, keys);
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }
@@ -640,8 +638,8 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     .start("touch(EventLoop eventLoop, WriteListener listener, WritePolicy policy, Key key)",
                             eventLoop, listener, policy, key);
             try {
-                delegate.touch(eventLoop, AsyncMonitor.getInstance().wrap(listener), policy, key);
-                utility.end();
+                delegate.touch(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), policy, key);
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }
@@ -669,8 +667,8 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     .start("exists(EventLoop eventLoop, ExistsListener listener, Policy policy, Key key)",
                             eventLoop, listener, policy, key);
             try {
-                delegate.exists(eventLoop, AsyncMonitor.getInstance().wrap(listener), policy, key);
-                utility.end();
+                delegate.exists(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), policy, key);
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }
@@ -698,8 +696,8 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     .start("exists(EventLoop eventLoop, ExistsArrayListener listener, BatchPolicy policy, Key[] keys)",
                             eventLoop, listener, policy, keys);
             try {
-                delegate.exists(eventLoop, AsyncMonitor.getInstance().wrap(listener), policy, keys);
-                utility.end();
+                delegate.exists(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), policy, keys);
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }
@@ -714,8 +712,8 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     "exists(EventLoop eventLoop, ExistsSequenceListener listener, BatchPolicy policy, Key[] keys)",
                     eventLoop, listener, policy, keys);
             try {
-                delegate.exists(eventLoop, AsyncMonitor.getInstance().wrap(listener), policy, keys);
-                utility.end();
+                delegate.exists(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), policy, keys);
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }
@@ -743,8 +741,8 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     .start("get(EventLoop eventLoop, RecordListener listener, Policy policy, Key key)",
                             eventLoop, listener, policy, key);
             try {
-                delegate.get(eventLoop, AsyncMonitor.getInstance().wrap(listener), policy, key);
-                utility.end();
+                delegate.get(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), policy, key);
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }
@@ -773,8 +771,8 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     "get(EventLoop eventLoop, RecordListener listener, Policy policy, Key key, String... binNames)",
                     eventLoop, listener, policy, key, binNames);
             try {
-                delegate.get(eventLoop, AsyncMonitor.getInstance().wrap(listener), policy, key, binNames);
-                utility.end();
+                delegate.get(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), policy, key, binNames);
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }
@@ -802,8 +800,8 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     .start("getHeader(EventLoop eventLoop, RecordListener listener, Policy policy, Key key)",
                             eventLoop, listener, policy, key);
             try {
-                delegate.getHeader(eventLoop, AsyncMonitor.getInstance().wrap(listener), policy, key);
-                utility.end();
+                delegate.getHeader(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), policy, key);
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }
@@ -832,8 +830,8 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     "get(EventLoop eventLoop, BatchListListener listener, BatchPolicy policy, List<BatchRead> records)",
                     eventLoop, listener, policy, records);
             try {
-                delegate.get(eventLoop, AsyncMonitor.getInstance().wrap(listener), policy, records);
-                utility.end();
+                delegate.get(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), policy, records);
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }
@@ -848,8 +846,8 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     "get(EventLoop eventLoop, BatchSequenceListener listener, BatchPolicy policy, List<BatchRead> records)",
                     eventLoop, listener, policy, records);
             try {
-                delegate.get(eventLoop, AsyncMonitor.getInstance().wrap(listener), policy, records);
-                utility.end();
+                delegate.get(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), policy, records);
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }
@@ -877,8 +875,8 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     .start("get(EventLoop eventLoop, RecordArrayListener listener, BatchPolicy policy, Key[] keys)",
                             eventLoop, listener, policy, keys);
             try {
-                delegate.get(eventLoop, AsyncMonitor.getInstance().wrap(listener), policy, keys);
-                utility.end();
+                delegate.get(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), policy, keys);
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }
@@ -893,8 +891,8 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     .start("get(EventLoop eventLoop, RecordSequenceListener listener, BatchPolicy policy, Key[] keys)",
                             eventLoop, listener, policy, keys);
             try {
-                delegate.get(eventLoop, AsyncMonitor.getInstance().wrap(listener), policy, keys);
-                utility.end();
+                delegate.get(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), policy, keys);
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }
@@ -924,8 +922,8 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     "get(EventLoop eventLoop, RecordArrayListener listener, BatchPolicy policy, Key[] keys, String... binNames)",
                     eventLoop, listener, policy, keys, binNames);
             try {
-                delegate.get(eventLoop, AsyncMonitor.getInstance().wrap(listener), policy, keys, binNames);
-                utility.end();
+                delegate.get(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), policy, keys, binNames);
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }
@@ -941,8 +939,8 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     "get(EventLoop eventLoop, RecordSequenceListener listener, BatchPolicy policy, Key[] keys, String... binNames)",
                     eventLoop, listener, policy, keys, binNames);
             try {
-                delegate.get(eventLoop, AsyncMonitor.getInstance().wrap(listener), policy, keys, binNames);
-                utility.end();
+                delegate.get(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), policy, keys, binNames);
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }
@@ -972,8 +970,8 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     "get(EventLoop eventLoop, RecordArrayListener listener, BatchPolicy policy, Key[] keys, Operation... ops)",
                     eventLoop, listener, policy, keys, ops);
             try {
-                delegate.get(eventLoop, AsyncMonitor.getInstance().wrap(listener), policy, keys, ops);
-                utility.end();
+                delegate.get(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), policy, keys, ops);
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }
@@ -989,8 +987,8 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     "get(EventLoop eventLoop, RecordSequenceListener listener, BatchPolicy policy, Key[] keys, Operation... ops)",
                     eventLoop, listener, policy, keys, ops);
             try {
-                delegate.get(eventLoop, AsyncMonitor.getInstance().wrap(listener), policy, keys, ops);
-                utility.end();
+                delegate.get(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), policy, keys, ops);
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }
@@ -1019,8 +1017,8 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     "getHeader(EventLoop eventLoop, RecordArrayListener listener, BatchPolicy policy, Key[] keys)",
                     eventLoop, listener, policy, keys);
             try {
-                delegate.getHeader(eventLoop, AsyncMonitor.getInstance().wrap(listener), policy, keys);
-                utility.end();
+                delegate.getHeader(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), policy, keys);
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }
@@ -1035,8 +1033,8 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     "getHeader(EventLoop eventLoop, RecordSequenceListener listener, BatchPolicy policy, Key[] keys)",
                     eventLoop, listener, policy, keys);
             try {
-                delegate.getHeader(eventLoop, AsyncMonitor.getInstance().wrap(listener), policy, keys);
-                utility.end();
+                delegate.getHeader(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), policy, keys);
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }
@@ -1076,8 +1074,8 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     eventLoop, listener, policy, key, operations);
             try {
                 if (!failureProfile.isEnabled()) {
-                    delegate.operate(eventLoop, AsyncMonitor.getInstance().wrap(listener), policy, key, operations);
-                    utility.end();
+                    delegate.operate(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), policy, key, operations);
+                    utility.markSubmissionTime();
                 }
                 else {
                     new TimeoutHandler<WritePolicy>(policy, WritePolicy.class).invoke((newPolicy) -> {
@@ -1116,8 +1114,8 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     "operate(EventLoop eventLoop, BatchOperateListListener listener, BatchPolicy policy, List<BatchRecord> records)",
                     eventLoop, listener, policy, records);
             try {
-                delegate.operate(eventLoop, AsyncMonitor.getInstance().wrap(listener), policy, records);
-                utility.end();
+                delegate.operate(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), policy, records);
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }
@@ -1133,8 +1131,8 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     "operate(EventLoop eventLoop, BatchRecordSequenceListener listener, BatchPolicy policy, List<BatchRecord> records)",
                     eventLoop, listener, policy, records);
             try {
-                delegate.operate(eventLoop, AsyncMonitor.getInstance().wrap(listener), policy, records);
-                utility.end();
+                delegate.operate(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), policy, records);
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }
@@ -1165,8 +1163,8 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     "operate(EventLoop eventLoop, BatchRecordArrayListener listener, BatchPolicy batchPolicy, BatchWritePolicy writePolicy, Key[] keys, Operation... ops)",
                     eventLoop, listener, batchPolicy, writePolicy, keys, ops);
             try {
-                delegate.operate(eventLoop, AsyncMonitor.getInstance().wrap(listener), batchPolicy, writePolicy, keys, ops);
-                utility.end();
+                delegate.operate(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), batchPolicy, writePolicy, keys, ops);
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }
@@ -1182,7 +1180,7 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     "operate(EventLoop eventLoop, BatchRecordSequenceListener listener, BatchPolicy batchPolicy, BatchWritePolicy writePolicy, Key[] keys, Operation... ops)",
                     eventLoop, listener, batchPolicy, writePolicy, keys, ops);
             try {
-                delegate.operate(eventLoop, AsyncMonitor.getInstance().wrap(listener), batchPolicy, writePolicy, keys, ops);
+                delegate.operate(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), batchPolicy, writePolicy, keys, ops);
                 utility.end();
             } catch (RuntimeException e) {
                 throw utility.end(e);
@@ -1216,8 +1214,8 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     "scanAll(EventLoop eventLoop, RecordSequenceListener listener, ScanPolicy policy, String namespace, String setName, String... binNames)",
                     eventLoop, listener, policy, namespace, setName, binNames);
             try {
-                delegate.scanAll(eventLoop, AsyncMonitor.getInstance().wrap(listener), policy, namespace, setName, binNames);
-                utility.end();
+                delegate.scanAll(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), policy, namespace, setName, binNames);
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }
@@ -1284,8 +1282,8 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     "scanPartitions(EventLoop eventLoop, RecordSequenceListener listener, ScanPolicy policy, PartitionFilter partitionFilter, String namespace, String setName, String... binNames)",
                     eventLoop, listener, policy, partitionFilter, namespace, setName, binNames);
             try {
-                delegate.scanPartitions(eventLoop, AsyncMonitor.getInstance().wrap(listener), policy, partitionFilter, namespace, setName, binNames);
-                utility.end();
+                delegate.scanPartitions(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), policy, partitionFilter, namespace, setName, binNames);
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }
@@ -1377,8 +1375,8 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     "execute(EventLoop eventLoop, ExecuteListener listener, WritePolicy policy, Key key, String packageName, String functionName, Value... functionArgs)",
                     eventLoop, listener, policy, key, packageName, functionName, functionArgs);
             try {
-                delegate.execute(eventLoop, AsyncMonitor.getInstance().wrap(listener), policy, key, packageName, functionName, functionArgs);
-                utility.end();
+                delegate.execute(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), policy, key, packageName, functionName, functionArgs);
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }
@@ -1410,9 +1408,9 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     "execute(EventLoop eventLoop, BatchRecordArrayListener listener, BatchPolicy batchPolicy, BatchUDFPolicy udfPolicy, Key[] keys, String packageName, String functionName, Value... functionArgs)",
                     eventLoop, listener, batchPolicy, udfPolicy, keys, packageName, functionName, functionArgs);
             try {
-                delegate.execute(eventLoop, AsyncMonitor.getInstance().wrap(listener), batchPolicy, udfPolicy, keys, packageName, functionName,
+                delegate.execute(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), batchPolicy, udfPolicy, keys, packageName, functionName,
                         functionArgs);
-                utility.end();
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }
@@ -1429,9 +1427,9 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     "execute(EventLoop eventLoop, BatchRecordSequenceListener listener, BatchPolicy batchPolicy, BatchUDFPolicy udfPolicy, Key[] keys, String packageName, String functionName, Value... functionArgs)",
                     eventLoop, listener, batchPolicy, udfPolicy, keys, packageName, functionName, functionArgs);
             try {
-                delegate.execute(eventLoop, AsyncMonitor.getInstance().wrap(listener), batchPolicy, udfPolicy, keys, packageName, functionName,
+                delegate.execute(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), batchPolicy, udfPolicy, keys, packageName, functionName,
                         functionArgs);
-                utility.end();
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }
@@ -1492,8 +1490,8 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     "query(EventLoop eventLoop, RecordSequenceListener listener, QueryPolicy policy, Statement statement)",
                     eventLoop, listener, policy, statement);
             try {
-                delegate.query(eventLoop, AsyncMonitor.getInstance().wrap(listener), policy, statement);
-                utility.end();
+                delegate.query(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), policy, statement);
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }
@@ -1571,8 +1569,8 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     "queryPartitions(EventLoop eventLoop, RecordSequenceListener listener, QueryPolicy policy, Statement statement, PartitionFilter partitionFilter)",
                     eventLoop, listener, policy, statement, partitionFilter);
             try {
-                delegate.queryPartitions(eventLoop, AsyncMonitor.getInstance().wrap(listener), policy, statement, partitionFilter);
-                utility.end();
+                delegate.queryPartitions(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), policy, statement, partitionFilter);
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }
@@ -1666,9 +1664,9 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     "createIndex(EventLoop eventLoop, IndexListener listener, Policy policy, String namespace, String setName, String indexName, String binName, IndexType indexType, IndexCollectionType indexCollectionType)",
                     eventLoop, listener, policy, namespace, setName, indexName, binName, indexType, indexCollectionType);
             try {
-                delegate.createIndex(eventLoop, AsyncMonitor.getInstance().wrap(listener), policy, namespace, setName, indexName, binName, indexType,
+                delegate.createIndex(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), policy, namespace, setName, indexName, binName, indexType,
                         indexCollectionType);
-                utility.end();
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }
@@ -1700,8 +1698,8 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     "dropIndex(EventLoop eventLoop, IndexListener listener, Policy policy, String namespace, String setName, String indexName)",
                     eventLoop, listener, policy, namespace, setName, indexName);
             try {
-                delegate.dropIndex(eventLoop, AsyncMonitor.getInstance().wrap(listener), policy, namespace, setName, indexName);
-                utility.end();
+                delegate.dropIndex(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), policy, namespace, setName, indexName);
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }
@@ -1716,8 +1714,8 @@ public class MonitoringAerospikeClient implements IAerospikeClient, IMonitorClie
                     "info(EventLoop eventLoop, InfoListener listener, InfoPolicy policy, Node node, String... commands)",
                     eventLoop, listener, policy, node, commands);
             try {
-                delegate.info(eventLoop, AsyncMonitor.getInstance().wrap(listener), policy, node, commands);
-                utility.end();
+                delegate.info(eventLoop, AsyncMonitor.getInstance().wrap(listener, utility), policy, node, commands);
+                utility.markSubmissionTime();
             } catch (RuntimeException e) {
                 throw utility.end(e);
             }

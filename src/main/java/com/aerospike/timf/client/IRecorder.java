@@ -7,7 +7,7 @@ import com.aerospike.timf.client.recorders.Recorder;
 import com.aerospike.timf.client.recorders.Sample;
 
 public interface IRecorder {
-	void addSample(long timeUs, String description, RuntimeException exception, Object result, Object... args);
+	void addSample(long timeUs, long submissionTime, long resultsTime, String description, RuntimeException exception, Object result, String stackTrace, Object... args);
 	void clear();
 	void reset();
 	void enable(boolean isEnabled);

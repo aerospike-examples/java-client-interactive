@@ -20,6 +20,7 @@ import com.aerospike.client.listener.RecordListener;
 import com.aerospike.client.listener.RecordSequenceListener;
 import com.aerospike.client.listener.TaskStatusListener;
 import com.aerospike.client.listener.WriteListener;
+import com.aerospike.timf.client.TimingUtility;
 
 public class AsyncMonitor {
     private static AsyncMonitor instance = new AsyncMonitor();
@@ -48,145 +49,145 @@ public class AsyncMonitor {
         return activeCount.get();
     }
     
-    public BatchListListener wrap(BatchListListener delegate) {
+    public BatchListListener wrap(BatchListListener delegate, TimingUtility timer) {
         if (enabled) {
-            return new BatchListListenerDelegate(activeCount, delegate);
+            return new BatchListListenerDelegate(activeCount, delegate, timer);
         }
         else {
             return delegate;
         }
     }
-    public BatchOperateListListener wrap(BatchOperateListListener delegate) {
+    public BatchOperateListListener wrap(BatchOperateListListener delegate, TimingUtility timer) {
         if (enabled) {
-            return new BatchOperateListListenerDelegate(activeCount, delegate);
+            return new BatchOperateListListenerDelegate(activeCount, delegate, timer);
         }
         else {
             return delegate;
         }
     }
-    public BatchRecordArrayListener wrap(BatchRecordArrayListener delegate) {
+    public BatchRecordArrayListener wrap(BatchRecordArrayListener delegate, TimingUtility timer) {
         if (enabled) {
-            return new BatchRecordArrayListenerDelegate(activeCount, delegate);
+            return new BatchRecordArrayListenerDelegate(activeCount, delegate, timer);
         }
         else {
             return delegate;
         }
     }
-    public BatchRecordSequenceListener wrap(BatchRecordSequenceListener delegate) {
+    public BatchRecordSequenceListener wrap(BatchRecordSequenceListener delegate, TimingUtility timer) {
         if (enabled) {
-            return new BatchRecordSequenceListenerDelegate(activeCount, delegate);
+            return new BatchRecordSequenceListenerDelegate(activeCount, delegate, timer);
         }
         else {
             return delegate;
         }
     }
-    public BatchSequenceListener wrap(BatchSequenceListener delegate) {
+    public BatchSequenceListener wrap(BatchSequenceListener delegate, TimingUtility timer) {
         if (enabled) {
-            return new BatchSequenceListenerDelegate(activeCount, delegate);
+            return new BatchSequenceListenerDelegate(activeCount, delegate, timer);
         }
         else {
             return delegate;
         }
     }
-    public ClusterStatsListener wrap(ClusterStatsListener delegate) {
+    public ClusterStatsListener wrap(ClusterStatsListener delegate, TimingUtility timer) {
         if (enabled) {
-            return new ClusterStatsListenerDelegate(activeCount, delegate);
+            return new ClusterStatsListenerDelegate(activeCount, delegate, timer);
         }
         else {
             return delegate;
         }
     }
-    public DeleteListener wrap(DeleteListener delegate) {
+    public DeleteListener wrap(DeleteListener delegate, TimingUtility timer) {
         if (enabled) {
-            return new DeleteListenerDelegate(activeCount, delegate);
+            return new DeleteListenerDelegate(activeCount, delegate, timer);
         }
         else {
             return delegate;
         }
     }
-    public ExecuteListener wrap(ExecuteListener delegate) {
+    public ExecuteListener wrap(ExecuteListener delegate, TimingUtility timer) {
         if (enabled) {
-            return new ExecuteListenerDelegate(activeCount, delegate);
+            return new ExecuteListenerDelegate(activeCount, delegate, timer);
         }
         else {
             return delegate;
         }
     }
-    public ExistsArrayListener wrap(ExistsArrayListener delegate) {
+    public ExistsArrayListener wrap(ExistsArrayListener delegate, TimingUtility timer) {
         if (enabled) {
-            return new ExistsArrayListenerDelegate(activeCount, delegate);
+            return new ExistsArrayListenerDelegate(activeCount, delegate, timer);
         }
         else {
             return delegate;
         }
     }
-    public ExistsListener wrap(ExistsListener delegate) {
+    public ExistsListener wrap(ExistsListener delegate, TimingUtility timer) {
         if (enabled) {
-            return new ExistsListenerDelegate(activeCount, delegate);
+            return new ExistsListenerDelegate(activeCount, delegate, timer);
         }
         else {
             return delegate;
         }
     }
-    public ExistsSequenceListener wrap(ExistsSequenceListener delegate) {
+    public ExistsSequenceListener wrap(ExistsSequenceListener delegate, TimingUtility timer) {
         if (enabled) {
-            return new ExistsSequenceListenerDelegate(activeCount, delegate);
+            return new ExistsSequenceListenerDelegate(activeCount, delegate, timer);
         }
         else {
             return delegate;
         }
     }
-    public IndexListener wrap(IndexListener delegate) {
+    public IndexListener wrap(IndexListener delegate, TimingUtility timer) {
         if (enabled) {
-            return new IndexListenerDelegate(activeCount, delegate);
+            return new IndexListenerDelegate(activeCount, delegate, timer);
         }
         else {
             return delegate;
         }
     }
-    public InfoListener wrap(InfoListener delegate) {
+    public InfoListener wrap(InfoListener delegate, TimingUtility timer) {
         if (enabled) {
-            return new InfoListenerDelegate(activeCount, delegate);
+            return new InfoListenerDelegate(activeCount, delegate, timer);
         }
         else {
             return delegate;
         }
     }
-    public RecordArrayListener wrap(RecordArrayListener delegate) {
+    public RecordArrayListener wrap(RecordArrayListener delegate, TimingUtility timer) {
         if (enabled) {
-            return new RecordArrayListenerDelegate(activeCount, delegate);
+            return new RecordArrayListenerDelegate(activeCount, delegate, timer);
         }
         else {
             return delegate;
         }
     }
-    public RecordListener wrap(RecordListener delegate) {
+    public RecordListener wrap(RecordListener delegate, TimingUtility timer) {
         if (enabled) {
-            return new RecordListenerDelegate(activeCount, delegate);
+            return new RecordListenerDelegate(activeCount, delegate, timer);
         }
         else {
             return delegate;
         }
     }
-    public RecordSequenceListener wrap(RecordSequenceListener delegate) {
+    public RecordSequenceListener wrap(RecordSequenceListener delegate, TimingUtility timer) {
         if (enabled) {
-            return new RecordSequenceListenerDelegate(activeCount, delegate);
+            return new RecordSequenceListenerDelegate(activeCount, delegate, timer);
         }
         else {
             return delegate;
         }
     }
-    public TaskStatusListener wrap(TaskStatusListener delegate) {
+    public TaskStatusListener wrap(TaskStatusListener delegate, TimingUtility timer) {
         if (enabled) {
-            return new TaskStatusListenerDelegate(activeCount, delegate);
+            return new TaskStatusListenerDelegate(activeCount, delegate, timer);
         }
         else {
             return delegate;
         }
     }
-    public WriteListener wrap(WriteListener delegate) {
+    public WriteListener wrap(WriteListener delegate, TimingUtility timer) {
         if (enabled) {
-            return new WriteListenerDelegate(activeCount, delegate);
+            return new WriteListenerDelegate(activeCount, delegate, timer);
         }
         else {
             return delegate;

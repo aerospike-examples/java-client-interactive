@@ -34,7 +34,7 @@ public class AggregatingRecorder extends Recorder implements IRecorder {
 		this.timerThread.start();
 	}
 	
-	public void addSample(long timeUs, String description, RuntimeException exception, Object result, Object... args) {
+	public void addSample(long timeUs, long submissionTime, long resultsTime, String description, RuntimeException exception, Object result, String stackTrace, Object... args) {
 	    if (enabled) {
 	        this.aggregator.addSample(exception == null, timeUs);
 	    }

@@ -1,8 +1,10 @@
 package com.aerospike.timf.example;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
@@ -44,7 +46,7 @@ public class FirstSample implements CallbackNotifier {
 
     private static final int NUM_INSERT_THREADS = 5;
     private static final int NUM_RW_THREADS = 10;
-    private static final long NUM_RECORDS = 100;
+    private static final long NUM_RECORDS = 1000;
     private static final String NAMESPACE = "test";
     private static final String SET_NAME = "customers";
     private static final AddressGeneratorService addressGenerator = new AddressGeneratorService();
@@ -104,7 +106,201 @@ public class FirstSample implements CallbackNotifier {
         client.get(null, new Key(NAMESPACE, SET_NAME, id));
     }
     
+    private void testCase() {
+        String s = "[graph_type: \"MIG\"\r\n"
+                + "oti_file_id: 19\r\n"
+                + "data_asset_id: 3717\r\n"
+                + "data_asset_format_id: 3717\r\n"
+                + "catalog_dir_name: \"gs://aed74db8-2be6-47bc-b8a9-ab69241f5950-3717-a/version=100/instance_id=2294762/obs_date=2023-08-08\"\r\n"
+                + "catalog_file_name: \"\"\r\n"
+                + "graph_status_cd: \"A\"\r\n"
+                + "file_observation_dt: \"2023-08-08 00:00:00.000\"\r\n"
+                + ", graph_type: \"MIG\"\r\n"
+                + "oti_file_id: 15\r\n"
+                + "data_asset_id: 3717\r\n"
+                + "data_asset_format_id: 3717\r\n"
+                + "catalog_dir_name: \"gs://aed74db8-2be6-47bc-b8a9-ab69241f5950-3717-a/version=100/instance_id=2246939/obs_date=2023-07-11\"\r\n"
+                + "catalog_file_name: \"\"\r\n"
+                + "graph_status_cd: \"A\"\r\n"
+                + "file_observation_dt: \"2023-07-11 00:00:00.000\"\r\n"
+                + ", graph_type: \"MIG\"\r\n"
+                + "oti_file_id: 10\r\n"
+                + "data_asset_id: 3717\r\n"
+                + "data_asset_format_id: 3717\r\n"
+                + "catalog_dir_name: \"gs://aed74db8-2be6-47bc-b8a9-ab69241f5950-3717-a/version=100/instance_id=2200322/obs_date=2023-06-20\"\r\n"
+                + "catalog_file_name: \"\"\r\n"
+                + "graph_status_cd: \"A\"\r\n"
+                + "file_observation_dt: \"2023-06-20 00:00:00.000\"\r\n"
+                + ", graph_type: \"MIG\"\r\n"
+                + "oti_file_id: 9\r\n"
+                + "data_asset_id: 3717\r\n"
+                + "data_asset_format_id: 3717\r\n"
+                + "catalog_dir_name: \"gs://aed74db8-2be6-47bc-b8a9-ab69241f5950-3717-a/version=100/instance_id=2179179/obs_date=2023-06-06\"\r\n"
+                + "catalog_file_name: \"\"\r\n"
+                + "graph_status_cd: \"A\"\r\n"
+                + "file_observation_dt: \"2023-06-06 00:00:00.000\"\r\n"
+                + ", graph_type: \"MIG\"\r\n"
+                + "oti_file_id: 4\r\n"
+                + "data_asset_id: 3717\r\n"
+                + "data_asset_format_id: 3717\r\n"
+                + "catalog_dir_name: \"gs://aed74db8-2be6-47bc-b8a9-ab69241f5950-3717-a/version=100/instance_id=2149336/obs_date=2023-05-16\"\r\n"
+                + "catalog_file_name: \"\"\r\n"
+                + "graph_status_cd: \"A\"\r\n"
+                + "file_observation_dt: \"2023-05-16 00:00:00.000\"\r\n"
+                + ", graph_type: \"MIG\"\r\n"
+                + "oti_file_id: 1\r\n"
+                + "data_asset_id: 3717\r\n"
+                + "data_asset_format_id: 3717\r\n"
+                + "catalog_dir_name: \"gs://aed74db8-2be6-47bc-b8a9-ab69241f5950-3717-a/version=100/instance_id=2104532/obs_date=2023-04-18\"\r\n"
+                + "catalog_file_name: \"\"\r\n"
+                + "graph_status_cd: \"A\"\r\n"
+                + "file_observation_dt: \"2023-04-18 00:00:00.000\"\r\n"
+                + "]";
+        Bin stringBin = new Bin("dataStr", s);
+        
+        List<String> strings = new ArrayList<>();
+        strings.add("graph_type: \"MIG\"\r\n"
+                + "oti_file_id: 19\r\n"
+                + "data_asset_id: 3717\r\n"
+                + "data_asset_format_id: 3717\r\n"
+                + "catalog_dir_name: \"gs://aed74db8-2be6-47bc-b8a9-ab69241f5950-3717-a/version=100/instance_id=2294762/obs_date=2023-08-08\"\r\n"
+                + "catalog_file_name: \"\"\r\n"
+                + "graph_status_cd: \"A\"\r\n"
+                + "file_observation_dt: \"2023-08-08 00:00:00.000\r\n");
+        strings.add("graph_type: \"MIG\"\r\n"
+                + "oti_file_id: 15\r\n"
+                + "data_asset_id: 3717\r\n"
+                + "data_asset_format_id: 3717\r\n"
+                + "catalog_dir_name: \"gs://aed74db8-2be6-47bc-b8a9-ab69241f5950-3717-a/version=100/instance_id=2246939/obs_date=2023-07-11\"\r\n"
+                + "catalog_file_name: \"\"\r\n"
+                + "graph_status_cd: \"A\"\r\n"
+                + "file_observation_dt: \"2023-07-11 00:00:00.000\r\n");
+        strings.add("graph_type: \"MIG\"\r\n"
+                + "oti_file_id: 10\r\n"
+                + "data_asset_id: 3717\r\n"
+                + "data_asset_format_id: 3717\r\n"
+                + "catalog_dir_name: \"gs://aed74db8-2be6-47bc-b8a9-ab69241f5950-3717-a/version=100/instance_id=2200322/obs_date=2023-06-20\"\r\n"
+                + "catalog_file_name: \"\"\r\n"
+                + "graph_status_cd: \"A\"\r\n"
+                + "file_observation_dt: \"2023-06-20 00:00:00.000\r\n");
+        strings.add("graph_type: \"MIG\"\r\n"
+                + "oti_file_id: 9\r\n"
+                + "data_asset_id: 3717\r\n"
+                + "data_asset_format_id: 3717\r\n"
+                + "catalog_dir_name: \"gs://aed74db8-2be6-47bc-b8a9-ab69241f5950-3717-a/version=100/instance_id=2179179/obs_date=2023-06-06\"\r\n"
+                + "catalog_file_name: \"\"\r\n"
+                + "graph_status_cd: \"A\"\r\n"
+                + "file_observation_dt: \"2023-06-06 00:00:00.000\r\n");
+        strings.add("graph_type: \"MIG\"\r\n"
+                + "oti_file_id: 4\r\n"
+                + "data_asset_id: 3717\r\n"
+                + "data_asset_format_id: 3717\r\n"
+                + "catalog_dir_name: \"gs://aed74db8-2be6-47bc-b8a9-ab69241f5950-3717-a/version=100/instance_id=2149336/obs_date=2023-05-16\"\r\n"
+                + "catalog_file_name: \"\"\r\n"
+                + "graph_status_cd: \"A\"\r\n"
+                + "file_observation_dt: \"2023-05-16 00:00:00.000\r\n");
+        strings.add("graph_type: \"MIG\"\r\n"
+                + "oti_file_id: 1\r\n"
+                + "data_asset_id: 3717\r\n"
+                + "data_asset_format_id: 3717\r\n"
+                + "catalog_dir_name: \"gs://aed74db8-2be6-47bc-b8a9-ab69241f5950-3717-a/version=100/instance_id=2104532/obs_date=2023-04-18\"\r\n"
+                + "catalog_file_name: \"\"\r\n"
+                + "graph_status_cd: \"A\"\r\n"
+                + "file_observation_dt: \"2023-04-18 00:00:00.000\r\n");
+        Bin stringListBin = new Bin("dataListStr", strings);
+        
+        List<Map<String, Object>> dataList = new ArrayList<>();
+        Map<String, Object> map = new HashMap<>();
+        map.put("graph_type", "MIG");
+        map.put("oti_file_id", 19);
+        map.put("data_asset_id", 3717);
+        map.put("data_asset_format_id", 3717);
+        map.put("catalog_dir_name", "gs://aed74db8-2be6-47bc-b8a9-ab69241f5950-3717-a/version=100/instance_id=2294762/obs_date=2023-08-08");
+        map.put("catalog_file_name", "");
+        map.put("graph_status_cd", "A");
+        map.put("file_observation_dt", "2023-08-08 00:00:00.000");
+        dataList.add(map);
+        map = new HashMap<>();
+        map.put("graph_type", "MIG");
+        map.put("oti_file_id", 19);
+        map.put("data_asset_id", 3717);
+        map.put("data_asset_format_id", 3717);
+        map.put("catalog_dir_name", "gs://aed74db8-2be6-47bc-b8a9-ab69241f5950-3717-a/version=100/instance_id=2294762/obs_date=2023-08-08");
+        map.put("catalog_file_name", "");
+        map.put("graph_status_cd", "A");
+        map.put("file_observation_dt", "2023-08-08 00:00:00.000");
+        dataList.add(map);
+        map = new HashMap<>();
+        map.put("graph_type", "MIG");
+        map.put("oti_file_id", 19);
+        map.put("data_asset_id", 3717);
+        map.put("data_asset_format_id", 3717);
+        map.put("catalog_dir_name", "gs://aed74db8-2be6-47bc-b8a9-ab69241f5950-3717-a/version=100/instance_id=2294762/obs_date=2023-08-08");
+        map.put("catalog_file_name", "");
+        map.put("graph_status_cd", "A");
+        map.put("file_observation_dt", "2023-08-08 00:00:00.000");
+        dataList.add(map);
+        map = new HashMap<>();
+        map.put("graph_type", "MIG");
+        map.put("oti_file_id", 19);
+        map.put("data_asset_id", 3717);
+        map.put("data_asset_format_id", 3717);
+        map.put("catalog_dir_name", "gs://aed74db8-2be6-47bc-b8a9-ab69241f5950-3717-a/version=100/instance_id=2294762/obs_date=2023-08-08");
+        map.put("catalog_file_name", "");
+        map.put("graph_status_cd", "A");
+        map.put("file_observation_dt", "2023-08-08 00:00:00.000");
+        dataList.add(map);
+        map = new HashMap<>();
+        map.put("graph_type", "MIG");
+        map.put("oti_file_id", 19);
+        map.put("data_asset_id", 3717);
+        map.put("data_asset_format_id", 3717);
+        map.put("catalog_dir_name", "gs://aed74db8-2be6-47bc-b8a9-ab69241f5950-3717-a/version=100/instance_id=2294762/obs_date=2023-08-08");
+        map.put("catalog_file_name", "");
+        map.put("graph_status_cd", "A");
+        map.put("file_observation_dt", "2023-08-08 00:00:00.000");
+        dataList.add(map);
+        map = new HashMap<>();
+        map.put("graph_type", "MIG");
+        map.put("oti_file_id", 19);
+        map.put("data_asset_id", 3717);
+        map.put("data_asset_format_id", 3717);
+        map.put("catalog_dir_name", "gs://aed74db8-2be6-47bc-b8a9-ab69241f5950-3717-a/version=100/instance_id=2294762/obs_date=2023-08-08");
+        map.put("catalog_file_name", "");
+        map.put("graph_status_cd", "A");
+        map.put("file_observation_dt", "2023-08-08 00:00:00.000");
+        dataList.add(map);
+        map = new HashMap<>();
+        map.put("graph_type", "MIG");
+        map.put("oti_file_id", 19);
+        map.put("data_asset_id", 3717);
+        map.put("data_asset_format_id", 3717);
+        map.put("catalog_dir_name", "gs://aed74db8-2be6-47bc-b8a9-ab69241f5950-3717-a/version=100/instance_id=2294762/obs_date=2023-08-08");
+        map.put("catalog_file_name", "");
+        map.put("graph_status_cd", "A");
+        map.put("file_observation_dt", "2023-08-08 00:00:00.000");
+        dataList.add(map);
+        map = new HashMap<>();
+        map.put("graph_type", "MIG");
+        map.put("oti_file_id", 19);
+        map.put("data_asset_id", 3717);
+        map.put("data_asset_format_id", 3717);
+        map.put("catalog_dir_name", "gs://aed74db8-2be6-47bc-b8a9-ab69241f5950-3717-a/version=100/instance_id=2294762/obs_date=2023-08-08");
+        map.put("catalog_file_name", "");
+        map.put("graph_status_cd", "A");
+        map.put("file_observation_dt", "2023-08-08 00:00:00.000");
+        dataList.add(map);
+        Bin listMapBin = new Bin("data", dataList);
+        Key key = new Key(NAMESPACE, "oti_graph", 1);
+        client.put(null, key, stringBin, stringListBin, listMapBin);
+        client.get(null, key);
+        client.get(null, key, "dataStr");
+        client.get(null, key, "dataListStr");
+        client.get(null, key, "data");
+    }
+    
     public void loadData() {
+        testCase();
         this.recordCount.set(0);
         ExecutorService executor = Executors.newFixedThreadPool(NUM_INSERT_THREADS);
         for (int i = 0; i < NUM_INSERT_THREADS; i++) {
@@ -132,6 +328,8 @@ public class FirstSample implements CallbackNotifier {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        
+        
         
         client.operate(null, new Key(NAMESPACE, SET_NAME, 10), 
                 Operation.add(new Bin("date", 1)),

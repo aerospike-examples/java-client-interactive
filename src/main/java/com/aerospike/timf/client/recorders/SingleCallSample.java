@@ -15,6 +15,8 @@ public class SingleCallSample extends Sample {
 	private final Object result;
 	private final long resultSize;
 	private final long executionTimeUs;
+	private final long submissionTimeUs;
+	private final long resultsTimeUs;
 	private final boolean showBatchDetails;
 	private final String stackTrace;
 	private Key[] batchKeys = null;
@@ -22,9 +24,11 @@ public class SingleCallSample extends Sample {
 	private final long threadId;
 	private final long activeAsyncCount;
 	
-	public SingleCallSample(long timeUs, boolean showBatchDetails, String functionName, Parameter[] parameters, String exceptionMessage, Object result, long resultSize, String stackTrace, long threadId, long activeAsyncCount) {
+	public SingleCallSample(long timeUs, long submissionTime, long resultsTime, boolean showBatchDetails, String functionName, Parameter[] parameters, String exceptionMessage, Object result, long resultSize, String stackTrace, long threadId, long activeAsyncCount) {
 		super(new Date().getTime());
 		this.executionTimeUs = timeUs;
+		this.submissionTimeUs = submissionTime;
+		this.resultsTimeUs = resultsTime;
 		this.functionName = functionName;
 		this.parameters = parameters;
 		this.exceptionMessage = exceptionMessage;
@@ -177,23 +181,36 @@ public class SingleCallSample extends Sample {
         return resultSize;
     }
 	
-	public String asString(Date startDate, long startTimeInUs) {
+	public String asString(Date baselineDate, long startTimeFromBaselineInUs) {
 //      System.out.printf("[%,10dus] - %s => %,dus\n", getTimeSinceStartedInUs(), description, timeUs);
-	    long startTime = startDate.getTime() + startTimeInUs/1000;
-	    String date = sdf.format(new Date(startTime));
+	    long startTime = baselineDate.getTime() + startTimeFromBaselineInUs/1000;
+	    String startDate = sdf.format(new Date(startTime));
 	    String stackTrace = this.stackTrace == null ? "" : "\n" + this.stackTrace;
 	    // These methods must be called in this order as the first 2 have side effects which affect the next calls. 
 	    // Whilst JLS 15.12.4.2 specifies argument order from left to right, it's better to call them explicitly in order.
 	    String parametersString = this.getParametersAsString();
 	    String resultsString = this.getResultAsString();
 	    String batchDetails = getBatchDetails();
-        return String.format("[%s]: {%d,%d} %s%s = %s => %,dus%s%s", date, this.threadId, this.activeAsyncCount, this.getFunctionName(),
-                parametersString, resultsString, executionTimeUs, batchDetails, stackTrace);
-//        return String.format("[%,10dus] - %s%s = %s => %,dus",
-//                startTimeInUs, 
-//                this.getFunctionName(), 
-//                this.getParametersAsString(),
-//                this.getResultAsString(),
-//                executionTimeUs); 
+	    
+	    if (submissionTimeUs > 0) {
+	        long submitTime = startTime + submissionTimeUs / 1000;
+	        long resultsTime = startTime + resultsTimeUs / 1000;
+            long endTime = startTime + executionTimeUs/1000;
+            String endDate = sdf.format(new Date(endTime));
+            String submitDate = sdf.format(new Date(submitTime));
+            String resultsDate = sdf.format(new Date(resultsTime));
+    
+            return String.format("[%s,%s,%s,%s]: {%d,%d} %s%s = %s => [%,dus %,dus %,dus]%s%s", 
+                    startDate, submitDate, resultsDate, endDate, this.threadId, 
+                    this.activeAsyncCount, this.getFunctionName(), parametersString, resultsString, 
+                    this.submissionTimeUs, this.resultsTimeUs, this.executionTimeUs, batchDetails, stackTrace);
+	    }
+	    else {
+            long endTime = startTime + executionTimeUs/1000;
+            String endDate = sdf.format(new Date(endTime));
+    
+    	    return String.format("[%s,%s]: {%d,%d} %s%s = %s => %,dus%s%s", startDate, endDate, this.threadId, this.activeAsyncCount, this.getFunctionName(),
+                    parametersString, resultsString, executionTimeUs, batchDetails, stackTrace);
+	    }
 	}
 }

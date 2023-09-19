@@ -12,7 +12,7 @@ public class RecordingNotifier implements ITimingNotifier, IMonitorClient {
 
 	private EnumSet<RecordingType> recordingType = EnumSet.noneOf(RecordingType.class);
 	private final IRecorder aggregatingRecorder;
-	private final IRecorder singleCallRecorder;
+	private final SingleCallRecorder singleCallRecorder;
 	private final ConsoleNotifier consoleNotifier = new ConsoleNotifier();
 	
 	public RecordingNotifier(UiOptions options) {
@@ -26,6 +26,10 @@ public class RecordingNotifier implements ITimingNotifier, IMonitorClient {
 		this.singleCallRecorder.addSampleNotifier(consoleNotifier);
 		
 		this.setRecordingType(EnumSet.of(RecordingType.AGGREGATE));
+	}
+	
+	public boolean requiresStackTrace() {
+	    return this.singleCallRecorder.requiresStackTrace();
 	}
 	
 	public synchronized void setRecordingType(EnumSet<RecordingType> recordingType) {
@@ -49,22 +53,22 @@ public class RecordingNotifier implements ITimingNotifier, IMonitorClient {
 	    this.aggregatingRecorder.setFilter(filter);
 	    this.singleCallRecorder.setFilter(filter);
 	}
-	public void notify(long timeUs, String description, Object... args) {
-		this.notify(timeUs, description, null, null, args);
+	public void notify(long timeUs, long submissionTime, long resultsTime, String description, String stackTrace, Object... args) {
+		this.notify(timeUs, submissionTime, resultsTime, description, null, null, stackTrace, args);
 	}
-	public void notify(long timeUs, Object result, String description, Object... args) {
-		this.notify(timeUs, description, null, result, args);
+	public void notify(long timeUs, long submissionTime, long resultsTime, Object result, String description, String stackTrace, Object... args) {
+		this.notify(timeUs, submissionTime, resultsTime, description, null, result, stackTrace, args);
 	}
-	public void notify(long timeUs, RuntimeException exception, String description, Object... args) {
-		this.notify(timeUs, description, exception, null, args);
+	public void notify(long timeUs, long submissionTime, long resultsTime, RuntimeException exception, String description, String stackTrace, Object... args) {
+		this.notify(timeUs, submissionTime, resultsTime, description, exception, null, stackTrace, args);
 	}
 	
-	private void notify(long timeUs, String description, RuntimeException exception, Object result, Object... args) {
+	private void notify(long timeUs, long submissionTime, long resultsTime, String description, RuntimeException exception, Object result, String stackTrace, Object... args) {
 		if (recordingType.contains(RecordingType.AGGREGATE)) {
-			this.aggregatingRecorder.addSample(timeUs, description, exception, result, args);
+			this.aggregatingRecorder.addSample(timeUs, submissionTime, resultsTime, description, exception, result, stackTrace, args);
 		}
 		if (recordingType.contains(RecordingType.PER_CALL))	 {
-			this.singleCallRecorder.addSample(timeUs, description, exception, result, args);
+			this.singleCallRecorder.addSample(timeUs, submissionTime, resultsTime, description, exception, result, stackTrace, args);
 		}
 	}
 	

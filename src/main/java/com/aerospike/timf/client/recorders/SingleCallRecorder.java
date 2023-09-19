@@ -14,14 +14,16 @@ public class SingleCallRecorder extends Recorder implements IRecorder {
     private final SingleCallRecorderOptions options;
     private volatile boolean enabled = false;
     private Filter filter;
-    // Specify this as a reference to the class so if the name ever changes we get a compile error
-    private static final String FILE_NAME = MonitoringAerospikeClient.class.getSimpleName() + ".java";
-    private static final int STACK_TRACE_ELEMENTS_TO_PRINT = 7;
     
     public SingleCallRecorder(SingleCallRecorderOptions options) {
         super(true);
         this.options = options;
     }
+    
+    public boolean requiresStackTrace() {
+        return options.isShowStackTrace();
+    }
+    
 	public String getFunctionName(String description) {
 		int index = description.indexOf("(");
 		if (index > 0) {
@@ -62,42 +64,12 @@ public class SingleCallRecorder extends Recorder implements IRecorder {
 		return results;
 	}
 	
-	private String getStackTrace() {
-        String stackTrace = null;
-        if (options.isShowStackTrace()) {
-            StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
-            boolean found = false;
-            StringBuffer sb = new StringBuffer(1000);
-            int counter = 0;
-            for (int i = 0; i < stackTraceElements.length; i++) {
-                if (!found) {
-                    // Skip over the parts of the stack which are internal, up to and over the MonitoringAerospikeClient
-                    if (FILE_NAME.equals(stackTraceElements[i].getFileName())) {
-                        found = true;
-                    }
-                }
-                else {
-                    if (counter < STACK_TRACE_ELEMENTS_TO_PRINT) {
-                        sb.append("  ").append(stackTraceElements[i].toString()).append('\n');
-                        counter++;
-                    }
-                    else {
-                        sb.append("  ... (").append(stackTraceElements.length - i).append(") more.");
-                        break;
-                    }
-                }
-            }
-            stackTrace = sb.toString();
-        }
-        return stackTrace;
-	}
-
-	public void addSample(long timeUs, String description, RuntimeException exception, Object result, Object... args) {
+	public void addSample(long timeUs, long submissionTime, long resultsTime, String description, RuntimeException exception, Object result, String stackTrace, Object... args) {
 	    if (enabled) {
 	        if (filter == null || filter.apply(timeUs)) {
                 long size = (this.options.isShowResultSize()) ? Utils.estimateSize(result) : 0;
-        		SingleCallSample sample = new SingleCallSample(timeUs, this.options.isShowBatchDetails(), getFunctionName(description), 
-        		        getParameters(description, args), exception == null ? null : exception.getMessage(), result, size, getStackTrace(),
+        		SingleCallSample sample = new SingleCallSample(timeUs, submissionTime, resultsTime, this.options.isShowBatchDetails(), getFunctionName(description), 
+        		        getParameters(description, args), exception == null ? null : exception.getMessage(), result, size, stackTrace,
         		        Thread.currentThread().getId(), AsyncMonitor.getInstance().getActiveCount());
         		synchronized (this) {
             		samples.add(sample);
