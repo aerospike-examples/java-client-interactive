@@ -1,6 +1,7 @@
 package com.aerospike.timf.example;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -29,13 +30,29 @@ import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.cdt.ListOperation;
 import com.aerospike.client.cdt.ListReturnType;
 import com.aerospike.client.cdt.MapOperation;
+import com.aerospike.client.cdt.MapOrder;
 import com.aerospike.client.cdt.MapPolicy;
+import com.aerospike.client.cdt.MapReturnType;
+import com.aerospike.client.exp.Exp;
+import com.aerospike.client.exp.Exp.Type;
+import com.aerospike.client.exp.ExpOperation;
+import com.aerospike.client.exp.ExpReadFlags;
+import com.aerospike.client.exp.ExpWriteFlags;
+import com.aerospike.client.exp.Expression;
+import com.aerospike.client.exp.MapExp;
 import com.aerospike.client.listener.RecordArrayListener;
 import com.aerospike.client.listener.RecordListener;
 import com.aerospike.client.listener.WriteListener;
+import com.aerospike.client.policy.BatchPolicy;
 import com.aerospike.client.policy.ClientPolicy;
+import com.aerospike.client.policy.Policy;
+import com.aerospike.client.policy.QueryPolicy;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
+import com.aerospike.client.query.PartitionFilter;
+import com.aerospike.client.query.RecordSet;
+import com.aerospike.client.query.Statement;
+import com.aerospike.mapper.tools.virtuallist.ReturnType;
 import com.aerospike.timf.client.Filter;
 import com.aerospike.timf.client.MonitoringAerospikeClient;
 import com.aerospike.timf.client.RecordingType;
@@ -65,8 +82,8 @@ public class FirstSample implements CallbackNotifier {
         options.getSingleCallRecorderOptions().setShowBatchDetails(true);
         options.getSingleCallRecorderOptions().setShowResultSize(true);
         options.getSingleCallRecorderOptions().setShowStackTrace(true);
-        this.client = new MonitoringAerospikeClient(client, EnumSet.of(RecordingType.PER_CALL), options, new Filter().minTimeInUs(0));
-//        this.client = new MonitoringAerospikeClient(client, EnumSet.noneOf(RecordingType.class), new UiOptions(8090, false, this), new Filter().minTimeInUs(0));
+//        this.client = new MonitoringAerospikeClient(client, EnumSet.of(RecordingType.AGGREGATE), options, new Filter().minTimeInUs(10000));
+        this.client = new MonitoringAerospikeClient(client, EnumSet.noneOf(RecordingType.class), new UiOptions(8092, false, this), new Filter().minTimeInUs(0));
         WritePolicy policy = new WritePolicy(client.getWritePolicyDefault());
         policy.recordExistsAction = RecordExistsAction.REPLACE;
         policy.maxRetries = 3;
@@ -489,6 +506,82 @@ public class FirstSample implements CallbackNotifier {
         this.client.close();
     }
     
+    public static RecordSet getRecordsForWorker(IAerospikeClient client, int workerId) {
+        int partId = workerId / 2;
+        QueryPolicy queryPolicy = new QueryPolicy();
+        Statement stmt = new Statement();
+        stmt.setNamespace(NAMESPACE);
+        stmt.setSetName(SET_NAME);
+        queryPolicy.filterExp = Exp.build(Exp.eq(Exp.digestModulo(2), Exp.val(workerId%2)));
+        return client.queryPartitions(queryPolicy, stmt, PartitionFilter.id(partId));
+    }
+    
+    public static void readExp(IAerospikeClient client) {
+        Map<Integer, Integer> map = new HashMap<>();
+        for (int i = 0; i < 100; i++) {
+            map.put(i, i);
+        }
+        Key key = new Key("test", "mapSet", 1);
+        client.put(null, key, new Bin("map", map));
+        System.out.println(client.operate(null, key, MapOperation.getByIndexRange("map", -3, 10, MapReturnType.KEY)));
+    }
+    
+    public static void accountsSample(IAerospikeClient client) {
+        List<Integer> accountList = Arrays.asList(1,2,3,5,7,11,13, 17, 19,23);
+        /*
+        Key personKey = new Key("test", "customer", 1);
+        WritePolicy wp = new WritePolicy(client.getWritePolicyDefault());
+        wp.recordExistsAction = RecordExistsAction.REPLACE;
+        client.put(wp, personKey, new Bin("name", "Tim"), new Bin("age", 312), new Bin("Accts", accountList));
+        for (int i : accountList) {
+            Key acctKey = new Key("test", "account", i);
+            client.put(wp, acctKey, new Bin("name", "acct-" + i), new Bin("balance", ThreadLocalRandom.current().nextInt(2000)));
+        }
+        
+        */
+        // Show accounts with balance > $1000
+        Key[] keys = new Key[accountList.size()];
+        for (int i = 0; i < keys.length; i++) {
+            keys[i] = new Key("test", "account", accountList.get(i));
+        }
+        BatchPolicy batchPolicy = new BatchPolicy(client.getBatchPolicyDefault());
+        batchPolicy.filterExp = Exp.build(Exp.gt(Exp.intBin("balance"), Exp.val(1000)));
+        Record[] records = client.get(batchPolicy, keys);
+        for (Record r : records) {
+            if (r != null) {
+                System.out.println(r);
+            }
+        }
+    }
+    public static void addItem(IAerospikeClient client, Key key, long itemId, String name, double price, int quantity) {
+        MapPolicy mp = new MapPolicy(MapOrder.KEY_ORDERED, 0);
+        Map<Object, Object> data = new HashMap<>();
+        data.put("name", name);
+        data.put("price", price);
+        data.put("quantity", quantity);
+        System.out.println(client.operate(null, key,
+                MapOperation.create("items", MapOrder.KEY_ORDERED),
+                Operation.get("items"),
+                ExpOperation.write("items", Exp.build(
+                        Exp.cond(
+                            Exp.eq(MapExp.getByKey(MapReturnType.COUNT, Type.INT, Exp.val(itemId), Exp.mapBin("items")), Exp.val(0)),
+                            MapExp.put(mp, Exp.val(itemId), Exp.val(data), Exp.mapBin("items")),
+                            MapExp.increment(mp, Exp.val("quantity"), Exp.val(quantity), Exp.mapBin("items"), CTX.mapKey(Value.get(itemId)))
+                        )
+//                        
+                ), ExpWriteFlags.DEFAULT),
+                Operation.get("items")));
+//                ExpOperation.read("items2",
+//                        Exp.build(
+//                                MapExp.getByKey(MapReturnType.COUNT, Type.LIST, Exp.val(itemId), Exp.mapBin("items"))
+////                            Exp.let(
+////                                
+////                                Exp.def("existingItem", MapExp.getByKey(MapReturnType.VALUE, Type.LIST, Exp.val(itemId), Exp.mapBin("items"))),
+////                                Exp.var("existingItem")
+////                            )
+//                        ),
+//                        ExpWriteFlags.DEFAULT)));
+    }
 	public static void main(String[] args) throws Exception {
 	    if (args.length != 1) {
 	        System.out.println("Please pass IP address as the parameter");
@@ -507,7 +600,43 @@ public class FirstSample implements CallbackNotifier {
 		cp.eventLoops = eventLoops;
 		
 		IAerospikeClient client = new AerospikeClient(cp, "172.17.0.2"/*args[0]*/, 3000);
-
+		
+		Map<Integer, Integer> map = new HashMap<>();
+		for (int i = 0; i < 100; i++) {
+		    
+		    int key = ThreadLocalRandom.current().nextInt(10000);
+		    int value = ThreadLocalRandom.current().nextInt(1000000);
+		    map.put(key, value);
+		}
+		
+		Key key1 = new Key("test", "testSet", 10);
+		client.delete(null, key1);
+		
+		Map aMap = new HashMap<>();
+//		aMap.put(1, new ArrayList());
+//		client.put(null, key1, new Bin("items", aMap));
+		addItem(client, key1, 1, "item100", 27.05, 10);
+        addItem(client, key1, 2, "item200", 10.00, 1);
+        addItem(client, key1, 2, "item200", 20.00, 2);
+//		client.put(null, key1, new Bin("map", map));
+//		Record record = client.operate(null, key1,
+////		        ExpOperation.read("out2", Exp.build(MapExp.getByIndexRange(MapReturnType.VALUE, Exp.val(0), Exp.val(20), Exp.mapBin("map"))), 0)
+//		        ExpOperation.read("output",
+//                    Exp.build(ListExp.getByRankRange(ListReturnType.VALUE, Exp.val(0), Exp.val(10),  
+//                            MapExp.getByIndexRange(MapReturnType.VALUE, Exp.val(0), Exp.val(20), Exp.mapBin("map")))),
+//                    0)
+//		        );
+//		
+//		System.out.println(record);
+		accountsSample(client);
+		readExp(client);
+		WritePolicy writePolicy = new WritePolicy(client.getWritePolicyDefault());
+		writePolicy.durableDelete = true;
+		
+		client.delete(null, key1);
+		client.put(null, key1, new Bin("A", 13), new Bin("B", 16), new Bin("C", 23));
+		System.out.println(client.get(null, key1));
+		
 		FirstSample sample = new FirstSample(client, eventLoops);
 		sample.loadData();
 		sample.runAsyncWorkload(eventLoopSize);

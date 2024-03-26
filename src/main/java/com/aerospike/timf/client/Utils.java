@@ -2,11 +2,10 @@ package com.aerospike.timf.client;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 import com.aerospike.client.Bin;
@@ -397,5 +396,12 @@ public class Utils {
             long num = ThreadLocalRandom.current().nextInt(2000);
             System.out.printf("%,d => %s\n", num, humanReadableByteCountBinary(num));
         }
+        byte[] bytes = new byte[100000];
+        for (int i = 0; i < bytes.length; i++) {
+            bytes[i] = (byte)(i%128);
+        }
+        Map<Object, Object> obj = new HashMap<>();
+        obj.put("bytes", bytes);
+        System.out.println(estimateSize(obj));
     }
 }
