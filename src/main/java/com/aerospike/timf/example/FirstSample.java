@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import com.aerospike.client.AerospikeClient;
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Bin;
+import com.aerospike.client.Host;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.Key;
 import com.aerospike.client.Log;
@@ -599,7 +600,7 @@ public class FirstSample implements CallbackNotifier {
 		ClientPolicy cp = new ClientPolicy();
 		cp.eventLoops = eventLoops;
 		
-		IAerospikeClient client = new AerospikeClient(cp, "172.17.0.2"/*args[0]*/, 3000);
+		IAerospikeClient client = new AerospikeClient(cp, Host.parseHosts(args[0], 3000));
 		
 		Map<Integer, Integer> map = new HashMap<>();
 		for (int i = 0; i < 100; i++) {
