@@ -83,8 +83,8 @@ public class FirstSample implements CallbackNotifier {
         options.getSingleCallRecorderOptions().setShowBatchDetails(true);
         options.getSingleCallRecorderOptions().setShowResultSize(true);
         options.getSingleCallRecorderOptions().setShowStackTrace(true);
-//        this.client = new MonitoringAerospikeClient(client, EnumSet.of(RecordingType.AGGREGATE), options, new Filter().minTimeInUs(10000));
-        this.client = new MonitoringAerospikeClient(client, EnumSet.noneOf(RecordingType.class), new UiOptions(8092, false, this), new Filter().minTimeInUs(0));
+        this.client = new MonitoringAerospikeClient(client, EnumSet.of(RecordingType.AGGREGATE), options, new Filter().minTimeInUs(10000));
+//        this.client = new MonitoringAerospikeClient(client, EnumSet.noneOf(RecordingType.class), new UiOptions(8092, false, this), new Filter().minTimeInUs(0));
         WritePolicy policy = new WritePolicy(client.getWritePolicyDefault());
         policy.recordExistsAction = RecordExistsAction.REPLACE;
         policy.maxRetries = 3;
@@ -457,7 +457,7 @@ public class FirstSample implements CallbackNotifier {
                             int count = 10;
                             Key[] batchKeys = new Key[count];
                             for (int j = 0; j < count; j++) {
-                                batchKeys[j] = new Key(NAMESPACE, SET_NAME, random.nextLong(NUM_RECORDS+20));
+                                batchKeys[j] = new Key(NAMESPACE, SET_NAME, Math.abs(random.nextLong()) % (NUM_RECORDS+20));
                             }
                             client.get(null, batchKeys);
                         }
